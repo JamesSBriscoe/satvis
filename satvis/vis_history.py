@@ -18,6 +18,7 @@ def getVisHist(
     x_sensors: ndarray,
     time: list,
     planet_radius: float,
+    min_angle: float = 0.0,
 ) -> tuple[IntervalTree, ndarray]:
     """Generate visibility function history between sensors and targets.
 
@@ -34,6 +35,7 @@ def getVisHist(
             velocity] in km and km/s, respectively.
         time (`list`): [T x 1] list of times corresponding to state histories.
         planet_radius (`float`): assume spherical, km
+        min_angle (`float`, optional): Minimum angle above horizon to be considered visible
 
     Returns:
         rise_set_tree (`IntervalTree`): `IntervalTree` instance of class
@@ -59,6 +61,7 @@ def getVisHist(
 
     # preallocate visibility array and list of intervals
     vis = zeros([num_sensors, num_targets, len(time)])
+    phi = zeros([num_sensors, num_targets, len(time)])
     rise_set_ints = []
 
     # Calculate visibility function values of all sensor-target pairs
@@ -75,11 +78,12 @@ def getVisHist(
                 r2 = x_targets[i_time, :3, i_sat]
 
                 # calc visibility function (ignore supplemental outputs)
-                [vis[i_sensor, i_sat, i_time], _, _, _] = visibilityFunc(
+                [vis[i_sensor, i_sat, i_time], phi[i_sensor, i_sat, i_time], _, _] = visibilityFunc(
                     r1=r1,
                     r2=r2,
                     RE=planet_radius,
                     hg=0,
+                    min_angle=min_angle
                 )
 
             _, _, new_tree = zeroCrossingFit(
@@ -94,7 +98,7 @@ def getVisHist(
 
             counter += 1
     rise_set_tree = IntervalTree(rise_set_ints)
-    return rise_set_tree, vis
+    return rise_set_tree, vis, phi
 
 
 def getPairName(target: dict, sensor: dict) -> dict:
