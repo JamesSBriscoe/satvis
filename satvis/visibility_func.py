@@ -40,6 +40,7 @@ def visibilityFunc(
     RE: float,
     hg: float,
     tol: float = 1e-13,
+    min_angle: float = 0.0,
 ) -> Tuple[float, float, float, float]:
     """Calculate visibility function for two position vectors.
 
@@ -49,6 +50,7 @@ def visibilityFunc(
         RE (float): Radius of planet
         hg (float): extra height restriction above planet surface
         tol (float, optional): Tolerance for numerical errors. Defaults to 1e-13.
+        min_angle (float, optional): Minimum angle above horizon to be considered visible
 
     Returns:
         v (float): value of visibility function (positive indicates objects
@@ -123,7 +125,7 @@ def visibilityFunc(
         # Calc construction angles.
         alpha1 = arccos(RE_prime / r1_mag)
         alpha2 = arccos(RE_prime / r2_mag)
-        v = alpha1 + alpha2 - phi
+        v = alpha1 + alpha2 - (phi+min_angle)
 
     return v, phi, alpha1, alpha2
 
@@ -133,6 +135,7 @@ def zeroCrossingFit(
     v: ndarray,
     t: ndarray,
     id: object = None,
+    
 ) -> Tuple[ndarray[float], ndarray[int], IntervalTree]:
     """Interpolates visibility windows from sparse visibility data.
 
